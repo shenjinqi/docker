@@ -1,0 +1,62 @@
+version: '3'
+
+services:
+
+  
+  mqtt:
+    container_name: mqtt
+    restart: always
+    build: ./hbmqtt
+    working_dir: /app
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./hbmqtt/src:/app
+    ports:
+      - 1883:1883
+    command: bash -c "python setup.py install && python ./samples/broker_start.py"      
+  
+
+  web:
+    container_name: web
+    restart: always
+    build: ./flask
+    working_dir: /app
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./app:/app
+    expose:
+      - "8000"
+    command: gunicorn -w 2 -b 0.0.0.0:8000 app:app
+    #networks:
+    #  - elk
+    depends_on:
+      - mqtt
+    links:
+      - mqtt      
+  
+    
+  nginx:
+    container_name: nginx
+    restart: always
+    image: nginx
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./app/static:/app/static
+    links:
+      - web:web
+    ports:
+      - "80:80"
+      
+      
+  
+   
+  
+volumes:
+  elasticsearch:  
+  
+
+networks:
+  elk:
+    driver: bridge  
