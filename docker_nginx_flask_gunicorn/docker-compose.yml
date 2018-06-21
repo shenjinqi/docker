@@ -23,7 +23,7 @@ services:
     image: nginx
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./app/static:/app/static
+      - ./app/flaskapp/static:/app/static
     links:
       - web:web
     ports:
